@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		32E7F2C11E2A3E27002BE590 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 32E7F2C01E2A3E27002BE590 /* Friend.m */; };
 		FA82EC141E28AF28004CED91 /* file.plist in Resources */ = {isa = PBXBuildFile; fileRef = FA82EC131E28AF28004CED91 /* file.plist */; };
 		FAB8CD031E2782500040AC11 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB8CD021E2782500040AC11 /* main.m */; };
 		FAB8CD061E2782500040AC11 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB8CD051E2782500040AC11 /* AppDelegate.m */; };
@@ -36,6 +37,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		32E7F2BF1E2A3E27002BE590 /* Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Friend.h; sourceTree = "<group>"; };
+		32E7F2C01E2A3E27002BE590 /* Friend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Friend.m; sourceTree = "<group>"; };
 		FA82EC131E28AF28004CED91 /* file.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = file.plist; sourceTree = "<group>"; };
 		FAB8CCFE1E2782500040AC11 /* TableViewCompile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TableViewCompile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAB8CD021E2782500040AC11 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -107,6 +110,8 @@
 				FAB8CD051E2782500040AC11 /* AppDelegate.m */,
 				FAB8CD071E2782500040AC11 /* ViewController.h */,
 				FAB8CD081E2782500040AC11 /* ViewController.m */,
+				32E7F2BF1E2A3E27002BE590 /* Friend.h */,
+				32E7F2C01E2A3E27002BE590 /* Friend.m */,
 				FAB8CD0A1E2782500040AC11 /* Main.storyboard */,
 				FAB8CD0D1E2782500040AC11 /* Assets.xcassets */,
 				FAB8CD0F1E2782500040AC11 /* LaunchScreen.storyboard */,
@@ -283,6 +288,7 @@
 				FAB8CD091E2782500040AC11 /* ViewController.m in Sources */,
 				FAB8CD061E2782500040AC11 /* AppDelegate.m in Sources */,
 				FAB8CD031E2782500040AC11 /* main.m in Sources */,
+				32E7F2C11E2A3E27002BE590 /* Friend.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

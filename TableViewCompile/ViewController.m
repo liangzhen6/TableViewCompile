@@ -7,12 +7,15 @@
 //
 
 #import "ViewController.h"
+#import "Friend.h"
+#define STAR @"★"
+#define WELL @"#"
 
 @interface ViewController ()<UITableViewDelegate,UITableViewDataSource>
 @property(nonatomic,strong)UITableView * tableView;
 @property(nonatomic,strong)NSMutableArray * dataSource;
 @property(nonatomic,strong)NSMutableArray * indexs;
-
+@property(nonatomic,strong)NSMutableDictionary * allDataDict;
 @end
 
 @implementation ViewController
@@ -20,6 +23,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self initTableView];
+    
     // Do any additional setup after loading the view, typically from a nib.
 }
 
@@ -67,18 +71,10 @@
     NSString * path = [[NSBundle mainBundle] pathForResource:@"file" ofType:@"plist"];
     NSArray * data = [NSArray arrayWithContentsOfFile:path];
     NSLog(@"%@",data);
-    NSString * str = [self getFirstLetterFromString:@"仇人"];
 
     NSMutableDictionary * dict = [self handleAllFriendsName:data];
-    for (NSString * key in dict.allKeys) {
-        NSArray  * arr = [dict objectForKey:key];
-        NSLog(@"%@-",key);
-        
-        for (NSString * str in arr) {
-            NSLog(@"%@",str);
-        }
-    }
-
+    self.allDataDict = dict;
+    
     NSArray * allKeysArray = [dict allKeys];
     
     // 排序的字母
@@ -88,81 +84,130 @@
     
     self.indexs = [NSMutableArray arrayWithArray:sortKeysArr];
     NSString * firstString = [self.indexs objectAtIndex:0];
+//    [self.indexs addObject:@"★"];
+//    [self.indexs exchangeObjectAtIndex:0 withObjectAtIndex:self.indexs.count-1];
     [self.indexs removeObject:firstString];
+
     [self.indexs addObject:firstString];
     
+    
     for (NSString * key in self.indexs) {
-        [self.dataSource addObject:[dict objectForKey:key]];
+        if ([dict objectForKey:key]) {
+            [self.dataSource addObject:[dict objectForKey:key]];
+        }
     }
    
     [self.tableView reloadData];
     
 }
+//增加星标朋友
+- (void)addStarFriend:(Friend *)friend{
+    NSString * fristCharacter = [self getFirstLetterFromString:friend.friendName];
+    friend.starFriend = YES;
+    //1.从元数据中移除这一个朋友
+//    NSMutableArray * dataArr = [self.allDataDict objectForKey:fristCharacter];
+//    [dataArr removeObject:friend];
+//    if (!dataArr.count) {
+//        //这个数组被移空
+//        [self.allDataDict removeObjectForKey:fristCharacter];
+//    }
+    [self removeFriend:friend key:fristCharacter];
+    //2.将这个朋友添加到星标组
+//    NSMutableArray * starArr = [self.allDataDict objectForKey:STAR];
+//    if (starArr==nil) {
+//        starArr = [[NSMutableArray alloc] init];
+//        [self.allDataDict setObject:starArr forKey:STAR];
+//    }
+//    [starArr addObject:friend];
+    [self addFriend:friend key:STAR];
+    //3.处理索引数组以及数据源
+    [self handleIndexArrAndSourceData];
+    
+    //4.刷新tableView
+    [self.tableView reloadData];
+    
+    
 
-/*
-- (NSMutableArray *)createSectionData:(NSArray *)arrayds
-{
-    NSMutableArray *allKeysArray = [[NSMutableArray alloc] init];   // 没有排序的字母
-    NSMutableDictionary *dataSectionData = [[NSMutableDictionary alloc] init];  // 数据
+}
+//删除星标朋友
+- (void)deleteStarFriend:(Friend *)friend{
+    NSString * fristCharacter = [self getFirstLetterFromString:friend.friendName];
+    friend.starFriend = NO;
+   //1.从星标移除这个好友
+//    NSMutableArray * dataArr = [self.allDataDict objectForKey:STAR];
+//    [dataArr removeObject:friend];
+//    if (!dataArr.count) {
+//        //这个数组被移空
+//        [self.allDataDict removeObjectForKey:STAR];
+//    }
+    [self removeFriend:friend key:STAR];
+    //2.将他添加到fristCharacter这个数组内
+//    NSMutableArray * starArr = [self.allDataDict objectForKey:fristCharacter];
+//    if (starArr==nil) {
+//        starArr = [[NSMutableArray alloc] init];
+//        [self.allDataDict setObject:starArr forKey:fristCharacter];
+//    }
+//    [starArr addObject:friend];
+    [self addFriend:friend key:fristCharacter];
+    //3.处理索引数组以及数据源
+    [self handleIndexArrAndSourceData];
     
-    if (dataSectionData==nil)
-    {
-        dataSectionData = [[NSMutableDictionary alloc] init];
+    //4.刷新tableView
+    [self.tableView reloadData];
+
+}
+//移除key为键的数字里面的friend
+- (void)removeFriend:(Friend *)friend key:(NSString *)key{
+
+    NSMutableArray * dataArr = [self.allDataDict objectForKey:key];
+    [dataArr removeObject:friend];
+    if (!dataArr.count) {
+        //这个数组被移空
+        [self.allDataDict removeObjectForKey:key];
     }
-    else
-    {
-        [dataSectionData removeAllObjects];
-    }
-    for (int i = 0; i < arrayds.count; i++)
-    {
-        
-        NSString *sectionKey = @"";
-       
-       // 将姓名转换成拼音,并取名字拼音的首字母 ,得不到拼音首字母的归类至?
-       
-        NSString *familyName = [self getFirstLetterFromString:arrayds[i]];
-        if (familyName.length == 0) {
-            continue;
-        }else {
-            sectionKey =  familyName.length>0?[familyName substringToIndex:1]:@"?";
-        }
-        
-        
-       
-       // 将首字母转换成大写
-       
-        sectionKey = [sectionKey uppercaseString];
-        
-        NSMutableArray *sectionArray = [dataSectionData objectForKey:sectionKey];
-        
-        if (sectionArray == nil)
-        {
-            [allKeysArray addObject:sectionKey];
-            sectionArray = [[NSMutableArray alloc] init];
-            [dataSectionData setObject:sectionArray forKey:sectionKey];
-        }
-        [sectionArray addObject:arrayds[i]];
-    }
+
+}
+//添加key为键的数字里面的friend
+- (void)addFriend:(Friend *)friend key:(NSString *)key{
     
+    NSMutableArray * starArr = [self.allDataDict objectForKey:key];
+    if (starArr==nil) {
+        starArr = [[NSMutableArray alloc] init];
+        [self.allDataDict setObject:starArr forKey:key];
+    }
+    [starArr addObject:friend];
     
+}
+
+- (void)handleIndexArrAndSourceData{
+    NSArray * allKeysArray = [self.allDataDict allKeys];
+    
+    // 排序的字母
     NSArray *sortKeysArr = [allKeysArray sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
         return [obj1 compare:obj2 options:NSNumericSearch];
-    }];  // 排序的字母
+    }];
     
-    
-    NSMutableArray *asdfaefsag = [[NSMutableArray alloc] init];
-    for (int i = 0; i<sortKeysArr.count; i++) {
-        NSArray *arrsadf = dataSectionData[[NSString stringWithFormat:@"%@",sortKeysArr[i]]];
-        for (int j = 0; j<arrsadf.count; j++) {
-            NSArray *asdfd = @[sortKeysArr[i],arrsadf[j]];
-            [asdfaefsag addObject:asdfd];
+    self.indexs = [NSMutableArray arrayWithArray:sortKeysArr];
+    if ([self.indexs containsObject:STAR]) {
+        [self.indexs removeObject:STAR];
+        [self.indexs insertObject:STAR atIndex:0];
+    }
+    if ([self.indexs containsObject:WELL]) {
+        [self.indexs removeObject:WELL];
+        [self.indexs addObject:WELL];
+    }
+    //先把旧的数据移除
+    [self.dataSource removeAllObjects];
+    for (NSString * key in self.indexs) {
+        if ([self.allDataDict objectForKey:key]) {
+            [self.dataSource addObject:[self.allDataDict objectForKey:key]];
         }
     }
-    
-    return asdfaefsag;
-}
-*/
 
+    
+}
+
+#pragma mark  处理后台返回的一堆数据，将他们按首字母归类
 - (NSMutableDictionary *)handleAllFriendsName:(NSArray *)friendsName{
     
     NSMutableDictionary *resultDict = [[NSMutableDictionary alloc] init];
@@ -174,7 +219,9 @@
             subArray = [[NSMutableArray alloc] init];
             [resultDict setObject:subArray forKey:key];
         }
-        [subArray addObject:[friendName copy]];
+        Friend *friend = [[Friend alloc] init];
+        friend.friendName = friendName;
+        [subArray addObject:friend];
     }
     
     return resultDict;
@@ -191,24 +238,30 @@
     //再转换为不带声调的拼音
     CFStringTransform((CFMutableStringRef)str,NULL, kCFStringTransformStripDiacritics,NO);
     
-    
-//    区： 音为ōu（欧）常有人读为“区”(qū)。
-//    查： 本是检查、考查的意思，念chá，但作为姓氏要念zhā。
-//    曾 指曾经、未曾之意时念céng,但作为姓氏时要念zēng。
-//    晟 本是光明之意，念shèng,。但作为姓氏时念chéng。
-//    单 本是不复杂、独一的意思，念dān，但是作为姓氏时念shàn。
-//    乐 是一个多音字，念lè或者yuè，作为姓氏时念yuè。
-//    仇 作姓氏时应读作qíu
-//    尉迟 其中的尉应读作yù
-//    万俟 作姓氏时应读作mò qí
-//    沈 shen 也读chen 系统转换拼音时是chen
+/*
+ 区： 音为ōu（欧）常有人读为“区”(qū)。
+ 查： 本是检查、考查的意思，念chá，但作为姓氏要念zhā。
+ 曾 指曾经、未曾之意时念céng,但作为姓氏时要念zēng。
+ 晟 本是光明之意，念shèng,。但作为姓氏时念chéng。
+ 单 本是不复杂、独一的意思，念dān，但是作为姓氏时念shàn。
+ 乐 是一个多音字，念lè或者yuè，作为姓氏时念yuè。
+ 仇 作姓氏时应读作qíu
+ 尉迟 其中的尉应读作yù
+ 沈 shen 也读chen 系统转换拼音时是chen
+*/
 #warning ===目前发现上面的这些作为姓氏的时候首字母与原汉字首字母不同需要特殊处理
-    
-    //因为发现沈字还要chen这个音，除了沈阳，出的结果是（shen）其他都是chen，很明显不相符，
-    //chen这个音基本不用，所以这里特殊处理了，沈字都发shen音
-    if ([[(NSString *)aString substringToIndex:1] compare:@"沈"] == NSOrderedSame)
-    {
-        [str replaceCharactersInRange:NSMakeRange(0, 4) withString:@"shen"];
+    NSArray * chinacese = @[@"区",@"查",@"曾",@"晟",@"单",@"乐",@"仇",@"尉",@"沈"];
+    NSArray * pinYin = @[@"ou",@"zha",@"zeng",@"cheng",@"shan",@"yue",@"qiu",@"yu",@"shen"];
+    for (NSInteger i = 0; i<chinacese.count; i++) {
+        if ([[(NSString *)aString substringToIndex:1] compare:chinacese[i]] == NSOrderedSame) {
+            NSArray * arr = [str componentsSeparatedByString:@" "];
+            if (arr.count) {
+                [str replaceCharactersInRange:NSMakeRange(0, [arr[0] length]) withString:pinYin[i]];
+                break;
+            }
+            
+        }
+
     }
     
     //获取并返回首字母
@@ -220,7 +273,7 @@
         return strPinYin;
     }else{
         //首字母不是字母返回#
-        return @"#";
+        return WELL;
     }
     
 }
@@ -250,7 +303,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 60;
+    return 50;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
@@ -258,18 +311,18 @@
     if (cell==nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
     }
-    
-    cell.textLabel.text = [self.dataSource[indexPath.section] objectAtIndex:indexPath.row];
+    Friend * friend = [self.dataSource[indexPath.section] objectAtIndex:indexPath.row];
+    cell.textLabel.text = friend.friendName;
     cell.textLabel.textColor = [UIColor blackColor];
     cell.accessoryType      = UITableViewCellAccessoryDisclosureIndicator;
     return cell;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
-    return 30;
+    return 25;
 }
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
-    UILabel * label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 30)];
+    UILabel * label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 25)];
     label.backgroundColor = [UIColor lightGrayColor];
     label.textColor = [UIColor blackColor];
     label.text =[NSString stringWithFormat:@"   %@",self.indexs[section]];
@@ -282,23 +335,14 @@
     return YES;
 }
 
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+
+
+
+- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath{
+    Friend * friend = [self.dataSource[indexPath.section] objectAtIndex:indexPath.row];
     
-    return YES;
-    
+    return friend.starFriend?@"取消星标好友":@"添加星标好友";
 }
-
-//对数据源进行重新排序
-
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
-    
-//    [tableView exchangeObjectAtIndex:sourceIndexPath.row withObjectAtIndex:destinationIndexPath.row];
-    
-}
-
-//- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath{
-//    return @"删除";
-//}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
 //    tableView.editing = YES;
@@ -306,13 +350,42 @@
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath{
-
+    Friend * friend = [self.dataSource[indexPath.section] objectAtIndex:indexPath.row];
+//    [self.dataSource[indexPath.section] removeObject:friend];
+//    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationBottom];
+    if (friend.starFriend) {
+    //取消星标好友
+        [self deleteStarFriend:friend];
+    }else{
+    //添加星标好友
+        [self addStarFriend:friend];
+    }
 }
 -(UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     return UITableViewCellEditingStyleDelete;
 }
 
+
+
+
+/*
+ 
+ //对数据源进行重新排序
+ 
+ - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
+ 
+ //    [tableView exchangeObjectAtIndex:sourceIndexPath.row withObjectAtIndex:destinationIndexPath.row];
+ 
+ }
+ 
+ - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+ 
+ return YES;
+ 
+ }
+
+ 
 - (NSArray<UITableViewRowAction *> *)tableView:(UITableView *)tableView editActionsForRowAtIndexPath:(NSIndexPath *)indexPath{
     // 添加一个删除按钮
     
@@ -391,7 +464,7 @@
     return @[deleteRowAction, topRowAction, moreRowAction];
 
 }
-
+*/
 //返回索引数组
 -(NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
 {
