@@ -22,6 +22,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.title = @"通讯录";
     [self initTableView];
     
     // Do any additional setup after loading the view, typically from a nib.
@@ -303,15 +304,6 @@
     return _indexs;
 }
 
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-
-
--(UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return UITableViewCellEditingStyleDelete;
-}
 
 - (NSArray<UITableViewRowAction *> *)tableView:(UITableView *)tableView editActionsForRowAtIndexPath:(NSIndexPath *)indexPath{
     Friend * friend  = self.dataSource[indexPath.section][indexPath.row];
@@ -370,7 +362,14 @@
  return YES;
  
  }
-
+ - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath{
+ // Return NO if you do not want the specified item to be editable.
+ return YES;
+ }
+ 
+ -(UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath{
+ return UITableViewCellEditingStyleDelete;
+ }
  
 - (NSArray<UITableViewRowAction *> *)tableView:(UITableView *)tableView editActionsForRowAtIndexPath:(NSIndexPath *)indexPath{
     // 添加一个删除按钮
