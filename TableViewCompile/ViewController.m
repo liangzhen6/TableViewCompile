@@ -36,31 +36,11 @@
     self.tableView.showsHorizontalScrollIndicator = YES;
     self.tableView.showsVerticalScrollIndicator = YES;
     
-    //改变索引的颜色
-//    self.tableView.sectionIndexColor = [UIColor blueColor];
-    //改变索引选中的背景颜色
-//    self.tableView.sectionIndexTrackingBackgroundColor = [UIColor clearColor];
     self.tableView.sectionIndexBackgroundColor = [UIColor clearColor];
     [self.view addSubview:self.tableView];
-//    for(char c = 'Z'; c >= 'A'; c-- ){
-//        NSString * data = [NSString stringWithFormat:@"%c",c];
-//        [self.indexs addObject:data];
-//    }
-//    
-//    //初始化数据
-//    for(char c = 'A'; c <= 'Z'; c++ ){
-//        NSString * data = [NSString stringWithFormat:@"%c",c];
-//        
-//        NSMutableArray * arr = [NSMutableArray array];
-//        for (NSInteger i = 0; i<3; i++) {
-//            [arr addObject:data];
-//        }
-//        [self.dataSource addObject:arr];
-//    
-//    }
+
     [self initData];
     
-
     [self.tableView reloadData];
 
 }
@@ -105,20 +85,8 @@
     NSString * fristCharacter = [self getFirstLetterFromString:friend.friendName];
     friend.starFriend = YES;
     //1.从元数据中移除这一个朋友
-//    NSMutableArray * dataArr = [self.allDataDict objectForKey:fristCharacter];
-//    [dataArr removeObject:friend];
-//    if (!dataArr.count) {
-//        //这个数组被移空
-//        [self.allDataDict removeObjectForKey:fristCharacter];
-//    }
     [self removeFriend:friend key:fristCharacter];
     //2.将这个朋友添加到星标组
-//    NSMutableArray * starArr = [self.allDataDict objectForKey:STAR];
-//    if (starArr==nil) {
-//        starArr = [[NSMutableArray alloc] init];
-//        [self.allDataDict setObject:starArr forKey:STAR];
-//    }
-//    [starArr addObject:friend];
     [self addFriend:friend key:STAR];
     //3.处理索引数组以及数据源
     [self handleIndexArrAndSourceData];
@@ -126,39 +94,41 @@
     //4.刷新tableView
     [self.tableView reloadData];
     
-    
-
 }
-//删除星标朋友
-- (void)deleteStarFriend:(Friend *)friend{
+//取消星标朋友
+- (void)cancleStarFriend:(Friend *)friend{
     NSString * fristCharacter = [self getFirstLetterFromString:friend.friendName];
     friend.starFriend = NO;
    //1.从星标移除这个好友
-//    NSMutableArray * dataArr = [self.allDataDict objectForKey:STAR];
-//    [dataArr removeObject:friend];
-//    if (!dataArr.count) {
-//        //这个数组被移空
-//        [self.allDataDict removeObjectForKey:STAR];
-//    }
     [self removeFriend:friend key:STAR];
     //2.将他添加到fristCharacter这个数组内
-//    NSMutableArray * starArr = [self.allDataDict objectForKey:fristCharacter];
-//    if (starArr==nil) {
-//        starArr = [[NSMutableArray alloc] init];
-//        [self.allDataDict setObject:starArr forKey:fristCharacter];
-//    }
-//    [starArr addObject:friend];
     [self addFriend:friend key:fristCharacter];
     //3.处理索引数组以及数据源
     [self handleIndexArrAndSourceData];
-    
     //4.刷新tableView
     [self.tableView reloadData];
 
 }
+//删除某个好友
+- (void)deleteFriend:(Friend *)friend{
+    NSString * fristCharacter;
+    //1.先确定是不是星标好友
+    if (friend.starFriend) {
+       fristCharacter = STAR;
+    }else{
+       fristCharacter = [self getFirstLetterFromString:friend.friendName];
+    }
+    //2.从源数据中移除这一个朋友
+    [self removeFriend:friend key:fristCharacter];
+    //3.处理索引数组以及数据源
+    [self handleIndexArrAndSourceData];
+    //4.刷新tableView
+    [self.tableView reloadData];
+    
+}
+
 //移除key为键的数字里面的friend
 - (void)removeFriend:(Friend *)friend key:(NSString *)key{
-
     NSMutableArray * dataArr = [self.allDataDict objectForKey:key];
     [dataArr removeObject:friend];
     if (!dataArr.count) {
@@ -171,7 +141,7 @@
 - (void)addFriend:(Friend *)friend key:(NSString *)key{
     
     NSMutableArray * starArr = [self.allDataDict objectForKey:key];
-    if (starArr==nil) {
+    if (starArr==nil) {//还没有这个数组
         starArr = [[NSMutableArray alloc] init];
         [self.allDataDict setObject:starArr forKey:key];
     }
@@ -181,12 +151,10 @@
 
 - (void)handleIndexArrAndSourceData{
     NSArray * allKeysArray = [self.allDataDict allKeys];
-    
     // 排序的字母
     NSArray *sortKeysArr = [allKeysArray sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
         return [obj1 compare:obj2 options:NSNumericSearch];
     }];
-    
     self.indexs = [NSMutableArray arrayWithArray:sortKeysArr];
     if ([self.indexs containsObject:STAR]) {
         [self.indexs removeObject:STAR];
@@ -204,14 +172,11 @@
         }
     }
 
-    
 }
 
 #pragma mark  处理后台返回的一堆数据，将他们按首字母归类
 - (NSMutableDictionary *)handleAllFriendsName:(NSArray *)friendsName{
-    
     NSMutableDictionary *resultDict = [[NSMutableDictionary alloc] init];
-    
     for (NSString * friendName in friendsName) {
         NSString * key = [self getFirstLetterFromString:friendName];
         NSMutableArray * subArray = [resultDict objectForKey:key];
@@ -232,7 +197,6 @@
 - (NSString *)getFirstLetterFromString:(NSString *)aString{
     //转成了可变字符串
     NSMutableString *str = [NSMutableString stringWithString:aString];
-    
     //先转换为带声调的拼音
     CFStringTransform((CFMutableStringRef)str,NULL, kCFStringTransformMandarinLatin,NO);
     //再转换为不带声调的拼音
@@ -328,42 +292,64 @@
     label.text =[NSString stringWithFormat:@"   %@",self.indexs[section]];
     return label;
 }
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    //    tableView.editing = YES;
+    
+}
 
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
+
+//返回索引数组
+-(NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView{
+    return _indexs;
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath{
     // Return NO if you do not want the specified item to be editable.
     return YES;
 }
 
 
-
-
-- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath{
-    Friend * friend = [self.dataSource[indexPath.section] objectAtIndex:indexPath.row];
-    
-    return friend.starFriend?@"取消星标好友":@"添加星标好友";
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-//    tableView.editing = YES;
-
-}
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath{
-    Friend * friend = [self.dataSource[indexPath.section] objectAtIndex:indexPath.row];
-//    [self.dataSource[indexPath.section] removeObject:friend];
-//    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationBottom];
-    if (friend.starFriend) {
-    //取消星标好友
-        [self deleteStarFriend:friend];
-    }else{
-    //添加星标好友
-        [self addStarFriend:friend];
-    }
-}
--(UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+-(UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath{
     return UITableViewCellEditingStyleDelete;
+}
+
+- (NSArray<UITableViewRowAction *> *)tableView:(UITableView *)tableView editActionsForRowAtIndexPath:(NSIndexPath *)indexPath{
+    Friend * friend  = self.dataSource[indexPath.section][indexPath.row];
+    // 添加一个删除按钮
+    UITableViewRowAction *deleteRowAction = [UITableViewRowAction rowActionWithStyle:UITableViewRowActionStyleDestructive title:@"删除"handler:^(UITableViewRowAction *action, NSIndexPath *indexPath) {
+        NSLog(@"点击了删除");
+        [self deleteFriend:friend];
+        
+    }];
+    
+    
+    // 添加星标好友按钮或者删除星标好友
+    NSString * title;
+    if (friend) {
+        if (friend.starFriend) {
+        title = @"取消星标好友";
+        }else{
+        title = @"添加星标好友";
+        }
+        
+    }
+    UITableViewRowAction *topRowAction = [UITableViewRowAction rowActionWithStyle:UITableViewRowActionStyleDefault title:title handler:^(UITableViewRowAction *action, NSIndexPath *indexPath) {
+        NSLog(@"星标按钮");
+        if (friend.starFriend) {
+        //取消星标好友操作
+           [self cancleStarFriend:friend];
+        }else{
+        //添加星标好友操作
+            [self addStarFriend:friend];
+        }
+    }];
+    
+    topRowAction.backgroundColor = [UIColor orangeColor];
+    
+    // 将设置好的按钮放到数组中返回
+    
+    return @[deleteRowAction, topRowAction];
+    
 }
 
 
@@ -465,11 +451,6 @@
 
 }
 */
-//返回索引数组
--(NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
-{
-    return _indexs;
-}
 
 
 
